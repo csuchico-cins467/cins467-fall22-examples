@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:counterstate/storage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,13 +25,17 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.purple,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(
+        title: 'Flutter Demo Home Page',
+        storage: CounterStorage(),
+      ),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  const MyHomePage({Key? key, required this.title, required this.storage})
+      : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -43,33 +47,46 @@ class MyHomePage extends StatefulWidget {
   // always marked "final".
 
   final String title;
+  final CounterStorage storage;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   late Future<int> _counter;
+  bool enable_inc = true;
+  bool enable_dec = true;
 
   void _incrementCounter() async {
-    final SharedPreferences prefs = await _prefs;
-    final int counter = (prefs.getInt('counter') ?? 0) + 1;
+    int counter = await widget.storage.readCounter();
+    if (counter < 10) {
+      counter += 1;
+      enable_dec = true;
+    }
+    enable_inc = true;
+    if (counter >= 10) {
+      enable_inc = false;
+    }
+    await widget.storage.writeCounter(counter);
     setState(() {
-      _counter = prefs.setInt('counter', counter).then((bool success) {
-        return counter;
-      });
+      _counter = widget.storage.readCounter();
     });
   }
 
   void _decrementCounter() async {
-    final SharedPreferences prefs = await _prefs;
-    final int counter = (prefs.getInt('counter') ?? 0) - 1;
-
+    int counter = await widget.storage.readCounter();
+    if (counter > 0) {
+      counter -= 1;
+      enable_inc = true;
+    }
+    enable_dec = true;
+    if (counter >= 10) {
+      enable_dec = false;
+    }
+    await widget.storage.writeCounter(counter);
     setState(() {
-      _counter = prefs.setInt('counter', counter).then((bool success) {
-        return counter;
-      });
+      _counter = widget.storage.readCounter();
     });
   }
 
@@ -83,9 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _counter = _prefs.then((SharedPreferences prefs) {
-      return prefs.getInt('counter') ?? 0;
-    });
+    _counter = widget.storage.readCounter();
   }
 
   @override
@@ -128,8 +143,10 @@ class _MyHomePageState extends State<MyHomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
-                    child: Icon(Icons.add), onPressed: _incrementCounter),
+                enable_inc
+                    ? ElevatedButton(
+                        child: Icon(Icons.add), onPressed: _incrementCounter)
+                    : Container(),
                 FutureBuilder<int>(
                     future: _counter,
                     builder:
@@ -158,8 +175,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 //         '$_counter',
                 //         style: Theme.of(context).textTheme.headline4,
                 //       ),
-                ElevatedButton(
-                    child: Icon(Icons.remove), onPressed: _decrementCounter),
+                enable_dec
+                    ? ElevatedButton(
+                        child: Icon(Icons.remove), onPressed: _decrementCounter)
+                    : Container(),
               ],
             ),
           ],
