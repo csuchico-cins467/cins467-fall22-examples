@@ -49,6 +49,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   final myController = TextEditingController();
 
   @override
@@ -59,18 +61,28 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void _printText() {
-    if (kDebugMode) {
-      print('Second text field: ${myController.text}');
+  void _submit() {
+    if (_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Processing Data")));
+
+      if (kDebugMode) {
+        print(myController.text);
+      }
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-
-    // Start listening to changes.
-    myController.addListener(_printLatestValue);
+  String? _textValidator(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter some text';
+    }
+    if (value.contains('@')) {
+      return 'Do not use the @ char.';
+    }
+    if (value.startsWith("bob")) {
+      return "Can't start with bob";
+    }
+    return null;
   }
 
   @override
@@ -90,24 +102,25 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            TextField(
-              controller: myController,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Enter a search term',
-              ),
-            ),
-          ],
-        ),
+        child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                TextFormField(
+                  controller: myController,
+                  decoration: const InputDecoration(
+                    icon: Icon(Icons.telegram),
+                    hintText: 'What do people call you?',
+                    labelText: 'Name *',
+                  ),
+                  validator: _textValidator,
+                ),
+                ElevatedButton(onPressed: _submit, child: const Text("Submit")),
+              ],
+            )),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _printText,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
