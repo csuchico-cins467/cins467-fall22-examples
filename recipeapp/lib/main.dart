@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:url_launcher/url_launcher.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -106,7 +108,19 @@ class _MyHomePageState extends State<MyHomePage> {
                   return ListView.builder(
                     itemCount: snapshot.data!.length,
                     itemBuilder: ((context, index) {
-                      return Text(snapshot.data![index]["title"]);
+                      return GestureDetector(
+                          onTap: () {
+                            Uri url = Uri.parse(snapshot.data![index]['url']);
+                            _launchUrl(url);
+                          },
+                          child: Card(
+                            child: Column(children: [
+                              ListTile(
+                                title: Text(snapshot.data![index]["title"]),
+                              ),
+                              Image.network(snapshot.data![index]["photo_url"])
+                            ]),
+                          ));
                     }),
                   );
                 }
@@ -119,5 +133,13 @@ class _MyHomePageState extends State<MyHomePage> {
         // )
         // This trailing comma makes auto-formatting nicer for build methods.
         );
+  }
+
+  Future<void> _launchUrl(Uri url) async {
+    if (!await launchUrl(url)) {
+      if (kDebugMode) {
+        print('Could not launch $url');
+      }
+    }
   }
 }
