@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:counterstate/storage.dart';
 
@@ -55,19 +57,10 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   late Future<int> _counter;
-  bool enable_inc = true;
-  bool enable_dec = true;
 
   void _incrementCounter() async {
     int counter = await widget.storage.readCounter();
-    if (counter < 10) {
-      counter += 1;
-      enable_dec = true;
-    }
-    enable_inc = true;
-    if (counter >= 10) {
-      enable_inc = false;
-    }
+    counter += 1;
     await widget.storage.writeCounter(counter);
     setState(() {
       _counter = widget.storage.readCounter();
@@ -76,14 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _decrementCounter() async {
     int counter = await widget.storage.readCounter();
-    if (counter > 0) {
-      counter -= 1;
-      enable_inc = true;
-    }
-    enable_dec = true;
-    if (counter >= 10) {
-      enable_dec = false;
-    }
+    counter -= 1;
     await widget.storage.writeCounter(counter);
     setState(() {
       _counter = widget.storage.readCounter();
@@ -136,52 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // axis because Columns are vertical (the cross axis would be
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                enable_inc
-                    ? ElevatedButton(
-                        child: Icon(Icons.add), onPressed: _incrementCounter)
-                    : Container(),
-                FutureBuilder<int>(
-                    future: _counter,
-                    builder:
-                        (BuildContext context, AsyncSnapshot<int> snapshot) {
-                      switch (snapshot.connectionState) {
-                        case ConnectionState.waiting:
-                          return const CircularProgressIndicator();
-                        default:
-                          if (snapshot.hasError) {
-                            return Text('Error: ${snapshot.error}');
-                          } else {
-                            return Text(
-                              '${snapshot.data}',
-                              style: Theme.of(context).textTheme.headline4,
-                            );
-                            // Text(
-                            //   'Button tapped ${snapshot.data} time${snapshot.data == 1 ? '' : 's'}.\n\n'
-                            //   'This should persist across restarts.',
-                            // );
-                          }
-                      }
-                    }),
-                // _counter == null
-                //     ? CircularProgressIndicator()
-                //     : Text(
-                //         '$_counter',
-                //         style: Theme.of(context).textTheme.headline4,
-                //       ),
-                enable_dec
-                    ? ElevatedButton(
-                        child: Icon(Icons.remove), onPressed: _decrementCounter)
-                    : Container(),
-              ],
-            ),
-          ],
+          children: getBody(),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -190,5 +131,61 @@ class _MyHomePageState extends State<MyHomePage> {
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  List<Widget> getBody() {
+    return <Widget>[
+      const Text(
+        'You have pushed the button this many times:',
+      ),
+      widget.storage.isInitialized
+          ? StreamBuilder(
+              stream:
+                  FirebaseFirestore.instance.collection("example").snapshots(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error.toString()}');
+                } else {
+                  if (!snapshot.hasData)
+                    return const CircularProgressIndicator();
+                  print(snapshot.data);
+                  return Text(
+                    snapshot.data!.docs[0]['count'].toString(),
+                    style: Theme.of(context).textTheme.headline4,
+                  );
+                }
+              })
+          : Container(),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton(child: Icon(Icons.add), onPressed: _incrementCounter),
+          FutureBuilder<int>(
+              future: _counter,
+              builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+                switch (snapshot.connectionState) {
+                  case ConnectionState.waiting:
+                    return const CircularProgressIndicator();
+                  default:
+                    if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else {
+                      return Text(
+                        '${snapshot.data}',
+                        style: Theme.of(context).textTheme.headline4,
+                      );
+                      // Text(
+                      //   'Button tapped ${snapshot.data} time${snapshot.data == 1 ? '' : 's'}.\n\n'
+                      //   'This should persist across restarts.',
+                      // );
+                    }
+                }
+              }),
+          ElevatedButton(
+              child: Icon(Icons.remove), onPressed: _decrementCounter),
+        ],
+      ),
+    ];
   }
 }
