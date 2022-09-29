@@ -1,16 +1,30 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:counterstate/storage.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 
 void main() {
-  runApp(const MyApp());
+  if (kIsWeb) {
+    runApp(const MyApp(
+      title: "Web",
+    ));
+  } else if (Platform.isAndroid) {
+    runApp(const MyApp(title: "Android"));
+  } else if (Platform.isIOS) {
+    runApp(const MyApp(
+      title: "iOS",
+    ));
+  }
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  final String title;
+  const MyApp({Key? key, required this.title}) : super(key: key);
 
   // This widget is the root of your application.
   @override
@@ -30,7 +44,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.purple,
       ),
       home: MyHomePage(
-        title: 'Flutter Demo Home Page',
+        title: 'Flutter Demo $title',
         storage: CounterStorage(),
       ),
     );
@@ -60,6 +74,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late Future<int> _counter;
   late Future<Position> _position;
+  File? _image;
 
   void _incrementCounter() async {
     int counter = await widget.storage.readCounter();
@@ -99,6 +114,22 @@ class _MyHomePageState extends State<MyHomePage> {
         print(position == null
             ? 'Unknown Location'
             : "${position.latitude.toString()}, ${position.longitude.toString()}");
+      }
+    });
+  }
+
+  void _getImage() async {
+    final ImagePicker _picker = ImagePicker();
+    // Pick an image
+    final XFile? pickedImage =
+        await _picker.pickImage(source: ImageSource.camera);
+    setState(() {
+      if (pickedImage != null) {
+        _image = File(pickedImage.path);
+      } else {
+        if (kDebugMode) {
+          print("No image selected.");
+        }
       }
     });
   }
@@ -181,15 +212,27 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        onPressed: _getImage,
+        tooltip: 'Add an Image',
+        child: const Icon(Icons.add_a_photo),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
   List<Widget> getBody() {
     return <Widget>[
+      Container(
+        margin: const EdgeInsets.all(10.0),
+        width: 200,
+        height: 200,
+        color: Colors.white,
+        child: _image == null
+            ? const Placeholder(
+                child: Image(
+                    image: NetworkImage(
+                        'https://t3.ftcdn.net/jpg/02/48/42/64/360_F_248426448_NVKLywWqArG2ADUxDq6QprtIzsF82dMF.jpg')))
+            : Image.file(_image!),
+      ),
       FutureBuilder(
           future: _position,
           builder: ((BuildContext context, AsyncSnapshot<Position> snapshot) {
