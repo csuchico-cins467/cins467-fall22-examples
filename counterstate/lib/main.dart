@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:counterstate/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -45,15 +46,13 @@ class MyApp extends StatelessWidget {
       ),
       home: MyHomePage(
         title: 'Flutter Demo $title',
-        storage: CounterStorage(),
       ),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title, required this.storage})
-      : super(key: key);
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -65,73 +64,18 @@ class MyHomePage extends StatefulWidget {
   // always marked "final".
 
   final String title;
-  final CounterStorage storage;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late Future<int> _counter;
   late Future<Position> _position;
   File? _image;
-
-  void _incrementCounter() async {
-    int counter = await widget.storage.readCounter();
-    counter += 1;
-    await widget.storage.writeCounter(counter);
-    setState(() {
-      _counter = widget.storage.readCounter();
-    });
-  }
-
-  void _decrementCounter() async {
-    int counter = await widget.storage.readCounter();
-    counter -= 1;
-    await widget.storage.writeCounter(counter);
-    setState(() {
-      _counter = widget.storage.readCounter();
-    });
-  }
-
-  // void getCounter() async {
-  //   _counter = await _prefs.then((SharedPreferences prefs) {
-  //     return prefs.getInt('counter') ?? 0;
-  //   });
-  //   setState(() {});
-  // }
 
   @override
   void initState() {
     super.initState();
-    _counter = widget.storage.readCounter();
-    _position = _determinePosition();
-    const LocationSettings locationSettings =
-        LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 100);
-    Geolocator.getPositionStream(locationSettings: locationSettings)
-        .listen((Position? position) {
-      if (kDebugMode) {
-        print(position == null
-            ? 'Unknown Location'
-            : "${position.latitude.toString()}, ${position.longitude.toString()}");
-      }
-    });
-  }
-
-  void _getImage() async {
-    final ImagePicker _picker = ImagePicker();
-    // Pick an image
-    final XFile? pickedImage =
-        await _picker.pickImage(source: ImageSource.camera);
-    setState(() {
-      if (pickedImage != null) {
-        _image = File(pickedImage.path);
-      } else {
-        if (kDebugMode) {
-          print("No image selected.");
-        }
-      }
-    });
   }
 
   /// Determine the current position of the device.
@@ -183,121 +127,88 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: getBody(),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _getImage,
-        tooltip: 'Add an Image',
-        child: const Icon(Icons.add_a_photo),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+    return FutureBuilder(
+        future: Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            if (kDebugMode) {
+              print(snapshot.error);
+            }
+            return const Text("Something Went Wrong");
+          }
+          if (snapshot.connectionState == ConnectionState.done) {
+            return Scaffold(
+              appBar: AppBar(
+                // Here we take the value from the MyHomePage object that was created by
+                // the App.build method, and use it to set our appbar title.
+                title: Text(widget.title),
+              ),
+              body: Center(
+                // Center is a layout widget. It takes a single child and positions it
+                // in the middle of the parent.
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: getBody(),
+                ),
+              ),
+              floatingActionButton: FloatingActionButton(
+                onPressed: () {
+                  if (kDebugMode) {
+                    print("Go to second Screen");
+                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const SecondScreen(
+                              title: 'Add a photo',
+                            )),
+                  );
+                },
+                tooltip: 'Add an Image',
+                child: const Icon(Icons.add_a_photo),
+              ), // This trailing comma makes auto-formatting nicer for build methods.
+            );
+          }
+          return const CircularProgressIndicator();
+        });
   }
 
   List<Widget> getBody() {
     return <Widget>[
-      Container(
-        margin: const EdgeInsets.all(10.0),
-        width: 200,
-        height: 200,
-        color: Colors.white,
-        child: _image == null
-            ? const Placeholder(
-                child: Image(
-                    image: NetworkImage(
-                        'https://t3.ftcdn.net/jpg/02/48/42/64/360_F_248426448_NVKLywWqArG2ADUxDq6QprtIzsF82dMF.jpg')))
-            : Image.file(_image!),
-      ),
-      FutureBuilder(
-          future: _position,
-          builder: ((BuildContext context, AsyncSnapshot<Position> snapshot) {
-            switch (snapshot.connectionState) {
-              case ConnectionState.waiting:
-                return const CircularProgressIndicator();
-              default:
-                if (snapshot.hasError) {
-                  return Text("Error: ${snapshot.error}");
-                }
-                return Text(
-                    '${snapshot.data!.latitude}, ${snapshot.data!.longitude}, ${snapshot.data!.accuracy}');
+      StreamBuilder(
+          stream: FirebaseFirestore.instance.collection("photos").snapshots(),
+          builder:
+              ((BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) {
+              return Text(snapshot.error.toString());
             }
-          })),
-      const Text(
-        'You have pushed the button this many times:',
-      ),
-      widget.storage.isInitialized
-          ? StreamBuilder(
-              stream:
-                  FirebaseFirestore.instance.collection("example").snapshots(),
-              builder: (BuildContext context,
-                  AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error.toString()}');
-                } else {
-                  if (!snapshot.hasData)
-                    return const CircularProgressIndicator();
-                  print(snapshot.data);
-                  return Text(
-                    snapshot.data!.docs[0]['count'].toString(),
-                    style: Theme.of(context).textTheme.headline4,
-                  );
-                }
-              })
-          : Container(),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ElevatedButton(child: Icon(Icons.add), onPressed: _incrementCounter),
-          FutureBuilder<int>(
-              future: _counter,
-              builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-                switch (snapshot.connectionState) {
-                  case ConnectionState.waiting:
-                    return const CircularProgressIndicator();
-                  default:
-                    if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else {
-                      return Text(
-                        '${snapshot.data}',
-                        style: Theme.of(context).textTheme.headline4,
-                      );
-                      // Text(
-                      //   'Button tapped ${snapshot.data} time${snapshot.data == 1 ? '' : 's'}.\n\n'
-                      //   'This should persist across restarts.',
-                      // );
-                    }
-                }
-              }),
-          ElevatedButton(
-              child: Icon(Icons.remove), onPressed: _decrementCounter),
-        ],
-      ),
+            if (!snapshot.hasData) return const Text("Loading Photos");
+            return Expanded(
+                child: Scrollbar(
+              child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: snapshot.data!.docs.length,
+                  itemBuilder: ((context, index) {
+                    return photoWidget(snapshot, index);
+                  })),
+            ));
+          }))
     ];
+  }
+
+  Widget photoWidget(AsyncSnapshot<QuerySnapshot> snapshot, int index) {
+    try {
+      return Column(
+        children: [
+          ListTile(
+            title: Text(snapshot.data!.docs[index]['title']),
+          ),
+          Image.network(snapshot.data!.docs[index]['downloadURL'], height: 150)
+        ],
+      );
+    } catch (e) {
+      return ListTile(title: Text("Error: $e"));
+    }
   }
 }

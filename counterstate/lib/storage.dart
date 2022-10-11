@@ -1,14 +1,30 @@
-import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// ignore_for_file: use_build_context_synchronously
+
+import 'dart:io';
+
+import 'package:counterstate/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
-import 'firebase_options.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
 
-class CounterStorage {
+class SecondScreen extends StatefulWidget {
+  const SecondScreen({super.key, required this.title});
+
+  final String title;
+
+  @override
+  State<SecondScreen> createState() => _SecondScreenState();
+}
+
+class _SecondScreenState extends State<SecondScreen> {
+  File? _image;
   bool _initialized = false;
+  FirebaseApp? app;
 
   Future<void> initializeDefault() async {
-    FirebaseApp app = await Firebase.initializeApp(
+    app = await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform);
     _initialized = true;
     if (kDebugMode) {
@@ -16,43 +32,69 @@ class CounterStorage {
     }
   }
 
-  bool get isInitialized => _initialized;
-
-  Future<bool> writeCounter(int counter) async {
-    if (!_initialized) {
-      await initializeDefault();
-    }
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    firestore.collection("example").doc("cins467").set({
-      'count': counter,
-    }).then((value) {
-      if (kDebugMode) {
-        print("Count added");
+  void _getImage() async {
+    final ImagePicker _picker = ImagePicker();
+    // Pick an image
+    final XFile? pickedImage =
+        await _picker.pickImage(source: ImageSource.camera);
+    setState(() {
+      if (pickedImage != null) {
+        _image = File(pickedImage.path);
+      } else {
+        if (kDebugMode) {
+          print("No image selected.");
+        }
       }
-      return true;
-    }).catchError((error) {
-      if (kDebugMode) {
-        print(error);
-      }
-      return false;
     });
-    return false;
   }
 
-  Future<int> readCounter() async {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    initializeDefault();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.title)),
+      body: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        _image == null
+            ? const Text("No image selected.")
+            : Image.file(_image!, width: 300),
+        ElevatedButton(
+            onPressed: () {
+              if (kDebugMode) {
+                print("upload");
+              }
+              _upload();
+            },
+            child: const Text(
+              "Submit",
+              style: TextStyle(fontSize: 20),
+            ))
+      ]),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _getImage,
+        tooltip: "Add a photo",
+        child: const Icon(Icons.add_a_photo),
+      ),
+    );
+  }
+
+  void _upload() async {
     if (!_initialized) {
       await initializeDefault();
     }
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    DocumentSnapshot ds =
-        await firestore.collection("example").doc("cins467").get();
-    if (ds.data() != null) {
-      Map<String, dynamic> data = (ds.data() as Map<String, dynamic>);
-      if (data.containsKey("count")) {
-        return data["count"];
+    if (_image != null) {
+      var uuid = const Uuid();
+      final String uid = uuid.v4();
+      if (kDebugMode) {
+        print(uid);
       }
+      //upload
+      Navigator.pop(context);
     }
-    await writeCounter(0);
-    return 0;
   }
 }
