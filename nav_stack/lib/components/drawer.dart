@@ -26,9 +26,7 @@ Widget getDrawer(context) {
             if (kDebugMode) {
               print("Page 1");
             }
-            Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const FirstRoute()),
-                (route) => false);
+            Navigator.pushReplacementNamed(context, '/');
           },
         ),
         ListTile(
@@ -37,9 +35,7 @@ Widget getDrawer(context) {
             if (kDebugMode) {
               print("Page 2");
             }
-            Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const SecondRoute()),
-                (route) => false);
+            Navigator.pushReplacementNamed(context, '/second');
           },
         ),
       ],

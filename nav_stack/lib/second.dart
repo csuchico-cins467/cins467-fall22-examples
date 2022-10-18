@@ -15,14 +15,7 @@ class SecondRoute extends StatelessWidget {
       body: Center(
         child: ElevatedButton(
           onPressed: () {
-            if (Navigator.canPop(context)) {
-              // Navigate back to first route when tapped.
-              Navigator.pop(context);
-            } else {
-              Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const FirstRoute()),
-                  (route) => false);
-            }
+            Navigator.popAndPushNamed(context, '/');
           },
           child: const Text('Go back!'),
         ),
