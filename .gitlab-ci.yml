@@ -28,3 +28,20 @@ flutter_build_android: #Job name
       - build/app/outputs/apk/release/app-release.apk
   # tags:
   #   - flutter
+
+####
+#### flutter_test lane
+####
+flutter_build_web: #Job name
+  stage: build # kind of job
+  before_script:
+    - cd counter_test
+    - flutter packages get
+    - flutter clean
+  script:
+     - flutter build web
+  artifacts:
+    paths:
+      - build/web/
+  # tags:
+  #   - flutter
