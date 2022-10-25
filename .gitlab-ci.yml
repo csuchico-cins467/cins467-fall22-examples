@@ -2,6 +2,7 @@ image: cirrusci/flutter
 
 stages:
   - test # All jobs related for testing such as Unit Test
+  - build # All jobs related for building app for iOS and Android
 
 flutter_test: # Name of the lane
   stage: test # type of stage
@@ -10,3 +11,20 @@ flutter_test: # Name of the lane
     - flutter test # Run Flutter test
   # tags:
   #   - flutter # Tags for runner
+
+####
+#### flutter_test lane
+####
+flutter_build_android: #Job name
+  stage: build # kind of job
+  before_script:
+    - cd counter_test
+    - flutter packages get
+    - flutter clean
+  script:
+     - flutter build apk
+  artifacts:
+    paths:
+      - build/app/outputs/apk/release/app-release.apk
+  # tags:
+  #   - flutter
