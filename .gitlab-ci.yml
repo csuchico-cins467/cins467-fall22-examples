@@ -1,3 +1,5 @@
+#Inspired by: https://medium.com/kinandcartacreated/setup-a-flutter-ci-cd-with-gitlab-ci-part-1-8d40b7a3b3dc
+
 image: cirrusci/flutter
 
 stages:
