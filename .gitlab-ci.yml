@@ -1,0 +1,12 @@
+image: cirrusci/flutter
+
+stages:
+  - test # All jobs related for testing such as Unit Test
+
+flutter_test: # Name of the lane
+  stage: test # type of stage
+  script:
+    - cd counter_test
+    - flutter test # Run Flutter test
+  tags:
+    - flutter # Tags for runner
