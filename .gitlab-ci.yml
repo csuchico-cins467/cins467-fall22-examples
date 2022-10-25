@@ -42,6 +42,6 @@ flutter_build_web: #Job name
      - flutter build web
   artifacts:
     paths:
-      - build/web/
+      - build/web/*
   # tags:
   #   - flutter
