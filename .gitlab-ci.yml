@@ -8,5 +8,5 @@ flutter_test: # Name of the lane
   script:
     - cd counter_test
     - flutter test # Run Flutter test
-  tags:
-    - flutter # Tags for runner
+  # tags:
+  #   - flutter # Tags for runner
