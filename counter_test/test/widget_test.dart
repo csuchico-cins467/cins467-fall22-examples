@@ -24,7 +24,7 @@ void main() {
 
     counter.decrement();
 
-    expect(counter.value, 0);
+    expect(counter.value, 1);
   });
 
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
