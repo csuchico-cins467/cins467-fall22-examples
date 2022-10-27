@@ -59,7 +59,7 @@ flutter_deploy_web: #Job name
     - flutter clean
   script:
      - flutter build web
-     - cp -r  counter_test/build/web ../public
+     - cp -r  build/web ../public
   artifacts:
     paths:
       - public
