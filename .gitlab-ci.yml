@@ -43,9 +43,6 @@ flutter_build_web: #Job name
     - flutter clean
   script:
      - flutter build web
-  artifacts:
-    paths:
-      - public
   # tags:
   #   - flutter
 
