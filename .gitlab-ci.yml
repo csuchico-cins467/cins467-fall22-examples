@@ -2,6 +2,10 @@
 
 image: cirrusci/flutter
 
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
 stages:
   - test # All jobs related for testing such as Unit Test
   - build # All jobs related for building app for iOS and Android
@@ -12,6 +16,8 @@ flutter_test: # Name of the lane
   script:
     - cd counter_test
     - flutter test # Run Flutter test
+  rules:
+    - if: $CI_COMMIT_BRANCH != "main"
   # tags:
   #   - flutter # Tags for runner
 
@@ -29,6 +35,8 @@ flutter_build_android: #Job name
   artifacts:
     paths:
       - counter_test/build/app/outputs/flutter-apk/app-release.apk
+  rules:
+    - if: $CI_COMMIT_BRANCH != "main"
   # tags:
   #   - flutter
 
@@ -43,6 +51,8 @@ flutter_build_web: #Job name
     - flutter clean
   script:
      - flutter build web
+  rules:
+    - if: $CI_COMMIT_BRANCH != "main"
   # tags:
   #   - flutter
 
@@ -51,8 +61,8 @@ flutter_build_web: #Job name
 ####
 pages: #Job name
   stage: deploy # kind of job
-  only:
-    - main
+  # only:
+  #   - main
   before_script:
     - cd counter_test
     - flutter packages get
@@ -63,3 +73,5 @@ pages: #Job name
   artifacts:
     paths:
       - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
