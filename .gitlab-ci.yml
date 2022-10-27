@@ -62,8 +62,7 @@ flutter_deploy_web: #Job name
     - flutter clean
   script:
      - flutter build web
-     - mkdir ../public
-     - cp -r  counter_test/build/web/ ../public
+     - cp -r  counter_test/build/web ../public
   artifacts:
     paths:
       - public
