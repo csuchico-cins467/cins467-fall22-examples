@@ -3,48 +3,48 @@
 image: cirrusci/flutter
 
 stages:
-  # - test # All jobs related for testing such as Unit Test
-  # - build # All jobs related for building app for iOS and Android
+  - test # All jobs related for testing such as Unit Test
+  - build # All jobs related for building app for iOS and Android
   - deploy # Deploy web
 
-# flutter_test: # Name of the lane
-#   stage: test # type of stage
-#   script:
-#     - cd counter_test
-#     - flutter test # Run Flutter test
-#   # tags:
-#   #   - flutter # Tags for runner
+flutter_test: # Name of the lane
+  stage: test # type of stage
+  script:
+    - cd counter_test
+    - flutter test # Run Flutter test
+  # tags:
+  #   - flutter # Tags for runner
 
 ####
 #### flutter_test lane
 ####
-# flutter_build_android: #Job name
-#   stage: build # kind of job
-#   before_script:
-#     - cd counter_test
-#     - flutter packages get
-#     - flutter clean
-#   script:
-#      - flutter build apk
-#   artifacts:
-#     paths:
-#       - counter_test/build/app/outputs/flutter-apk/app-release.apk
-#   # tags:
-#   #   - flutter
+flutter_build_android: #Job name
+  stage: build # kind of job
+  before_script:
+    - cd counter_test
+    - flutter packages get
+    - flutter clean
+  script:
+     - flutter build apk
+  artifacts:
+    paths:
+      - counter_test/build/app/outputs/flutter-apk/app-release.apk
+  # tags:
+  #   - flutter
 
 ####
 #### flutter_test lane
 ####
-# flutter_build_web: #Job name
-#   stage: build # kind of job
-#   before_script:
-#     - cd counter_test
-#     - flutter packages get
-#     - flutter clean
-#   script:
-#      - flutter build web
-#   # tags:
-#   #   - flutter
+flutter_build_web: #Job name
+  stage: build # kind of job
+  before_script:
+    - cd counter_test
+    - flutter packages get
+    - flutter clean
+  script:
+     - flutter build web
+  # tags:
+  #   - flutter
 
 ####
 #### flutter_test lane
