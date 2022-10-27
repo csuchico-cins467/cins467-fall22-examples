@@ -18,19 +18,19 @@ flutter_test: # Name of the lane
 ####
 #### flutter_test lane
 ####
-flutter_build_android: #Job name
-  stage: build # kind of job
-  before_script:
-    - cd counter_test
-    - flutter packages get
-    - flutter clean
-  script:
-     - flutter build apk
-  artifacts:
-    paths:
-      - counter_test/build/app/outputs/flutter-apk/app-release.apk
-  # tags:
-  #   - flutter
+# flutter_build_android: #Job name
+#   stage: build # kind of job
+#   before_script:
+#     - cd counter_test
+#     - flutter packages get
+#     - flutter clean
+#   script:
+#      - flutter build apk
+#   artifacts:
+#     paths:
+#       - counter_test/build/app/outputs/flutter-apk/app-release.apk
+#   # tags:
+#   #   - flutter
 
 ####
 #### flutter_test lane
@@ -49,7 +49,7 @@ flutter_build_web: #Job name
 ####
 #### flutter_test lane
 ####
-flutter_deploy_web: #Job name
+pages: #Job name
   stage: deploy # kind of job
   only:
     - main
