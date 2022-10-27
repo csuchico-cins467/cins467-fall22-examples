@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        primarySwatch: Color.fromARGB(255, 147, 65, 170),
+        primarySwatch: Colors.purpleAccent,
       ),
       home: const MyHomePage(title: 'Gitlab Test Page'),
     );
