@@ -5,6 +5,7 @@ image: cirrusci/flutter
 stages:
   - test # All jobs related for testing such as Unit Test
   - build # All jobs related for building app for iOS and Android
+  - deploy # Deploy web
 
 flutter_test: # Name of the lane
   stage: test # type of stage
@@ -42,10 +43,27 @@ flutter_build_web: #Job name
     - flutter clean
   script:
      - flutter build web
-     - mkdir ../public
-     - cp -r  counter_test/build/web/ ../public
   artifacts:
     paths:
       - public
   # tags:
   #   - flutter
+
+####
+#### flutter_test lane
+####
+flutter_deploy_web: #Job name
+  stage: deploy # kind of job
+  only:
+    - main
+  before_script:
+    - cd counter_test
+    - flutter packages get
+    - flutter clean
+  script:
+     - flutter build web
+     - mkdir ../public
+     - cp -r  counter_test/build/web/ ../public
+  artifacts:
+    paths:
+      - public
