@@ -3,8 +3,8 @@
 image: cirrusci/flutter
 
 stages:
-  - test # All jobs related for testing such as Unit Test
-  - build # All jobs related for building app for iOS and Android
+  # - test # All jobs related for testing such as Unit Test
+  # - build # All jobs related for building app for iOS and Android
   - deploy # Deploy web
 
 flutter_test: # Name of the lane
